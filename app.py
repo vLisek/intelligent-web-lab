@@ -38,9 +38,6 @@ def products():
 
     return jsonify(filtered_products), 200
 
-
-
-
 @app.route("/api/products/<int:product_id>", methods=["GET"])
 def get_product(product_id):
     product = next(
@@ -52,6 +49,48 @@ def get_product(product_id):
         return jsonify({"error": "not found"}), 404
 
     return jsonify(product), 200
+
+
+@app.route("/api/products", methods=["POST"])
+def add_product():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid JSON object"}), 400
+
+    required_fields = ["nazwa", "kategoria", "cena", "opis"]
+
+    if any(field not in data for field in required_fields):
+        return jsonify({"error": "Missing required field"}), 400
+
+    if "id" in data:
+        return jsonify({"error": "id is assigned by the server"}), 400
+
+    for field in ["nazwa", "kategoria", "opis"]:
+        if not isinstance(data[field], str) or not data[field].strip():
+            return jsonify({"error": f"Invalid field: {field}"}), 400
+
+    cena = data["cena"]
+
+    if (
+        isinstance(cena, bool)
+        or not isinstance(cena, (int, float))
+        or not math.isfinite(cena)
+        or cena < 0
+    ):
+        return jsonify({"error": "Invalid cena"}), 400
+
+    new_product = {
+        "id": max((p["id"] for p in PRODUCTS), default=0) + 1,
+        "nazwa": data["nazwa"].strip(),
+        "kategoria": data["kategoria"].strip(),
+        "cena": cena,
+        "opis": data["opis"].strip()
+    }
+
+    PRODUCTS.append(new_product)
+
+    return jsonify(new_product), 201
 
 
 if __name__ == "__main__":
