@@ -15,7 +15,8 @@ def api_recommend():
     if n is None or not 1 <= n <= 10:
         return jsonify({"error": "top_n musi byc z zakresu 1-10"}), 400
 
-    recs = recommend(title, top_n=n)
+    genre = request.args.get("genre", "").strip() or None
+    recs = recommend(title, top_n=n, genre=genre)
     if recs is None:
         return jsonify({"error": "nie znam takiego filmu"}), 404
 

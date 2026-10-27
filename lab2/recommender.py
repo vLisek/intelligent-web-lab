@@ -13,14 +13,13 @@ tfidf_matrix = vectorizer.fit_transform(df["overview"])
 
 sim_matrix = cosine_similarity(tfidf_matrix)  # 24 x 24, każdy film z każdym
 
-
-def recommend(title, top_n=5):
+def recommend(title, top_n=5, genre=None):
     match = df[df["title"].str.lower() == title.lower()]
     if match.empty:
         return None
     idx = match.index[0]
     scores = sorted(enumerate(sim_matrix[idx]), key=lambda x: x[1], reverse=True)
-    return [
+    results = [
         {
             "title": df["title"][i],
             "genres": df["genres"][i],
@@ -29,8 +28,11 @@ def recommend(title, top_n=5):
         }
         for i, s in scores
         if i != idx
-    ][:top_n]
-
+    ]
+    if genre:
+        g = genre.strip().lower()
+        results = [r for r in results if g in r["genres"].lower().split("|")]
+    return results[:top_n]
 
 if __name__ == "__main__":
     print(df.shape)
