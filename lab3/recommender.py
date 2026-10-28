@@ -47,6 +47,14 @@ def recommend(user, top_n=5, k=3):
         for t, s in best
     ]
 
+def similar_users(user, k=3):
+    if user not in matrix.index:
+        return None
+    neighbors = sim[user].drop(user).sort_values(ascending=False).head(k)
+    return [
+        {"user": name, "similarity": round(float(w), 3)}
+        for name, w in neighbors.items()
+    ]
 
 if __name__ == "__main__":
     print(recommend("Ania"))
